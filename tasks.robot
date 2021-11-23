@@ -22,8 +22,9 @@ Open the robot order website
     Open Available Browser      ${secret}[url]
 
 *** Keywords ***
-Download the excel file
-    Download    https://robotsparebinindustries.com/orders.csv  overwrite=True
+Download the order file
+    [Arguments]     ${order_url}
+    Download    ${order_url}    overwrite=True
 
 *** Keywords ***
 Close the annoying modal
@@ -31,7 +32,6 @@ Close the annoying modal
 
 *** Keywords ***
 Get orders
-    #Table Head    orders.csv
     ${orders}=  Read table from CSV    orders.csv   header=True
     [Return]    ${orders}
 
@@ -91,13 +91,26 @@ Create a ZIP file of the receipts
     ...     ${CURDIR}${/}output${/}Archive.zip
 
 *** Keywords ***
+Collect robot order
+    Add heading    Collect the "order.csv" file location
+    Add text       INSTRUCTION: Choose the option with '.csv'    size=Small
+    Add radio buttons
+    ...    name=order_website
+    ...    options=https://robotsparebinindustries.com/#/robot-order,https://robotsparebinindustries.com/orders.csv,https://robotsparebinindustries.com/SalesData.xlsx,https://robotsparebinindustries.com/
+    ...    default=https://robotsparebinindustries.com/#/robot-order
+    ...    label=URL
+    ${result}=    Run dialog    title=Robot Order Url    height=450    width=480
+    [Return]    ${result.order_website}
+
+*** Keywords ***
 Close the browser
     Close Browser    
 
 *** Tasks ***
 Order robots from RobotSpareBin Industries Inc
     Open the robot order website
-    Download the excel file
+    ${order_url}=   Collect robot order
+    Download the order file    ${order_url}
     ${orders}=    Get orders
     FOR    ${row}    IN    @{orders}
         Close the annoying modal
